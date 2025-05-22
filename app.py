@@ -243,7 +243,8 @@ def transactions():
     if search_query:
         user_invoice = user_invoice[user_invoice.astype(str).apply(lambda row: row.str.contains(search_query, case=False, na=False)).any(axis=1)]
 
-    important_cols = ['تاریخ', 'برداشت', 'واریز', 'ماهیانه', 'قسط وام', 'وام', 'وام فوری', 'برگشت وام فوری', 'توضیحات']
+    important_cols = ['تاریخ', 'برداشت', 'واریز', 'ماهیانه', 'قسط وام', 'وام', 'وام فوری', 'برگشت وام فوری', 'ش کارت']
+
 
     content = f'''
     <h2>تراکنش‌های {name}</h2>
