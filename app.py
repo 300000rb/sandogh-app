@@ -656,4 +656,3 @@ def upload_excel():
     session['upload_message'] = message
     return redirect(url_for('admin_panel'))
 
->>>>>>> 797a1fea3ae81ca9e020be5acd2b9f22b193246f
