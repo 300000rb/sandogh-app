@@ -1,0 +1,10 @@
+git add .
+git commit -m "اصلاحات جدید در فایل‌ها"
+git push origin main
+بعد از هر اصلاحی باید پوش کنیم
+
+
+git add .
+git commit -m "آپدیت کامل پروژه"
+git push  
+ همه پروژه را به گیت انتقال میده
