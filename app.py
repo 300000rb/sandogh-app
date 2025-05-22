@@ -2,117 +2,148 @@ from flask import Flask, render_template_string, request, redirect, session, url
 import pandas as pd
 import os
 from werkzeug.utils import secure_filename
+
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
+
 EXCEL_FILE = r"E:\bank data11111111111111\sandogh\base_hor.xlsm"
-UPLOAD_FOLDER = os.path.dirname(EXCEL_FILE)  # یعنی همان پوشه فایل اکسل
+UPLOAD_FOLDER = os.path.dirname(EXCEL_FILE)
 ALLOWED_EXTENSIONS = {'xls', 'xlsm'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
 
 BASE_HTML = '''
 <!doctype html>
 <html lang="fa">
 <head>
     <meta charset="UTF-8">
-    <title>صندوق</title>
-    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/font-face.css" rel="stylesheet" type="text/css" />
+    <title>صندوق قرض‌الحسنه</title>
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/font-face.css" rel="stylesheet" />
     <style>
         body {
             direction: rtl;
-            font-family: 'Vazir', Tahoma, sans-serif;
-            padding: 20px;
-            background-color: #f8f9fa;
-            color: #212529;
+            font-family: 'Vazir', sans-serif;
+            background: linear-gradient(to bottom, #e6f0ff, #ffffff);
+            background-attachment: fixed;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        header {
+            background-color: #007bff;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 22px;
+            font-weight: bold;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            padding: 30px;
         }
         table {
             border-collapse: collapse;
             width: 100%;
-            margin-top: 10px;
+            margin-top: 15px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
         }
         th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            text-align: center;
         }
         th {
             background-color: #007bff;
             color: white;
         }
         tr:nth-child(even) {
-            background-color: #f2f2f2;
+            background-color: #f2f6fc;
         }
         tr:hover {
-            background-color: #e9ecef;
+            background-color: #e9f1ff;
         }
-        button, input[type="submit"] {
-            background-color: #28a745;
-            border: none;
-            color: white;
-            padding: 8px 16px;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 14px;
-            margin: 4px 2px;
-            cursor: pointer;
-            border-radius: 5px;
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
         }
         input[type="text"], input[type="password"], input[type="file"] {
-            padding: 5px;
-            margin: 5px 0;
-            border: 1px solid #ccc;
-            border-radius: 5px;
+            width: 100%;
+            padding: 10px;
+            margin: 6px 0;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+        }
+        input[type="submit"], button {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 25px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        input[type="submit"]:hover, button:hover {
+            background-color: #218838;
         }
         a {
-            text-decoration: none;
             color: #007bff;
+            text-decoration: none;
         }
         a:hover {
             color: #0056b3;
         }
-   @media (max-width: 768px) {
-        table, thead, tbody, th, td, tr {
-            display: block;
-            width: 100%;
-        }
-
-        thead tr {
-            display: none;
-        }
-
-        tr {
-            margin-bottom: 15px;
-            border-bottom: 2px solid #ccc;
-            padding-bottom: 10px;
-        }
-
-        td {
-            text-align: right;
-            padding-right: 50%;
-            position: relative;
-            border: none !important;
-        }
-
-        td::before {
-            content: attr(data-label);
+        .logout {
             position: absolute;
-            right: 10px;
-            top: 8px;
-            font-weight: bold;
-            white-space: nowrap;
-            color: #666;
+            left: 20px;
+            top: 20px;
         }
-    } 
+        @media (max-width: 768px) {
+            table, thead, tbody, th, td, tr {
+                display: block;
+                width: 100%;
+            }
+            thead tr {
+                display: none;
+            }
+            td {
+                position: relative;
+                padding-right: 50%;
+                text-align: right;
+                border: none;
+            }
+            td::before {
+                content: attr(data-label);
+                position: absolute;
+                right: 10px;
+                top: 10px;
+                font-weight: bold;
+                color: #666;
+            }
+        }
     </style>
 </head>
 <body>
-    {% if session.get('logged_in') %}
-        <div style="text-align:left;"><a href="{{ url_for('logout') }}">خروج</a></div>
-    {% endif %}
-    {{ content|safe }}
+    <header>
+        سامانه صندوق قرض‌الحسنه
+        {% if session.get('logged_in') %}
+            <div class="logout"><a href="{{ url_for('logout') }}" style="color:white;">خروج</a></div>
+        {% endif %}
+    </header>
+    <div class="container">
+        {{ content|safe }}
+    </div>
 </body>
 </html>
 '''
+
+# توابع کمکی (خواندن اکسل، تبدیل اعداد و ...)
 
 def read_excel_data():
     try:
@@ -122,37 +153,25 @@ def read_excel_data():
     except Exception as e:
         return str(e), None
 
+def to_persian_numbers(text):
+    return str(text).translate(str.maketrans('0123456789', '۰۱۲۳۴۵۶۷۸۹'))
+
 def format_money(val):
     try:
         val = float(val)
-        formatted = f"{val:,.0f} ریال"
-        return to_persian_numbers(formatted)
+        return to_persian_numbers(f"{val:,.0f} ریال")
     except:
         return "-"
-def to_persian_numbers(text):
-    en_to_fa = str.maketrans('0123456789', '۰۱۲۳۴۵۶۷۸۹')
-    return str(text).translate(en_to_fa)
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-LOGIN_FORM = '''
-<h2>ورود</h2>
-<form method=post>
-    <label>نام یا شماره حساب:</label><br>
-    <input type=text name=username><br>
-    <label>رمز:</label><br>
-    <input type=password name=password><br><br>
-    <input type=submit value="ورود">
-</form>
-<hr>
-{{ result|safe }}
-'''
+
+# صفحات
+
 @app.route("/", methods=["GET", "POST"])
 def index():
     if session.get("logged_in"):
-        if session.get("is_admin"):
-            return redirect(url_for("admin_panel"))
-        else:
-            return redirect(url_for("user_panel"))
+        return redirect(url_for("admin_panel" if session.get("is_admin") else "user_panel"))
 
     result = ""
     if request.method == "POST":
@@ -164,14 +183,14 @@ def index():
             session["is_admin"] = True
             return redirect(url_for("admin_panel"))
 
-        df_report, df_invoice = read_excel_data()
+        df_report, _ = read_excel_data()
         if isinstance(df_report, str):
-            result = f"<b>خطا در خواندن فایل:</b> {df_report}"
+            result = f"<p style='color:red;'>{df_report}</p>"
         else:
             for _, row in df_report.iterrows():
                 account = str(row.get("شماره حساب", "")).strip().replace(".0", "")
-                password_excel = str(row.get("رمز", "")).strip().replace(".0", "")
                 name = str(row.get("نام و نام خانوادگي", "")).strip()
+                password_excel = str(row.get("رمز", "")).strip().replace(".0", "")
 
                 if (username == account or username == name) and password == password_excel:
                     session["logged_in"] = True
@@ -182,7 +201,20 @@ def index():
 
             result = "<p style='color:red;'>نام کاربری یا رمز عبور اشتباه است.</p>"
 
-    return render_template_string(BASE_HTML, content=LOGIN_FORM, result=result)
+    content = f'''
+    <div class="card">
+        <h2>ورود</h2>
+        <form method="post">
+            <label>نام یا شماره حساب:</label>
+            <input type="text" name="username">
+            <label>رمز عبور:</label>
+            <input type="password" name="password">
+            <input type="submit" value="ورود">
+        </form>
+        {result}
+    </div>
+    '''
+    return render_template_string(BASE_HTML, content=content)
 
 @app.route("/user")
 def user_panel():
@@ -190,24 +222,22 @@ def user_panel():
         return redirect(url_for("index"))
 
     df_report, _ = read_excel_data()
-    if isinstance(df_report, str):
-        return render_template_string(BASE_HTML, content=f"<b>خطا:</b> {df_report}")
-
     account = session.get("account")
     name = session.get("name")
     row = df_report[df_report["شماره حساب"].astype(str).str.replace(".0", "") == account].iloc[0]
 
-    content = f"<h2 style='color:green;'>خوش آمدید {name}</h2>"
-    content += f"<p><b>شماره حساب:</b> {account}</p>"
-    content += "<h4>اطلاعات مالی:</h4><ul>"
-
-    financial_data = row.iloc[6:]
-    for col, val in financial_data.items():
-        if pd.notna(val) and str(col).strip() != "" and not str(col).startswith("Unnamed") and "nan" not in str(col):
+    content = f'''
+    <div class="card">
+        <h2>خوش آمدید {name}</h2>
+        <p><b>شماره حساب:</b> {to_persian_numbers(account)}</p>
+        <h4>اطلاعات مالی:</h4>
+        <ul>
+    '''
+    for col, val in row.iloc[6:].items():
+        if pd.notna(val) and str(col).strip() != "" and not str(col).startswith("Unnamed"):
             content += f"<li>{col}: {format_money(val)}</li>"
-    content += "</ul>"
-
-    content += f'<br><a href="{url_for("transactions")}"><button>مشاهده تراکنش‌ها</button></a>'
+    content += "</ul><br>"
+    content += f'<a href="{url_for("transactions")}"><button>مشاهده تراکنش‌ها</button></a></div>'
 
     return render_template_string(BASE_HTML, content=content)
 
@@ -216,114 +246,85 @@ def transactions():
     if not session.get("logged_in") or session.get("is_admin"):
         return redirect(url_for("index"))
 
-    df_report, df_invoice = read_excel_data()
-    if isinstance(df_invoice, str):
-        return render_template_string(BASE_HTML, content=f"<b>خطا:</b> {df_invoice}")
-
-    account = session.get("account")
+    _, df_invoice = read_excel_data()
+    account = int(session.get("account"))
     name = session.get("name")
-
-    user_invoice = df_invoice[df_invoice["شماره حساب"] == int(account)]
-
     search_query = request.args.get("search", "").strip()
 
+    user_invoice = df_invoice[df_invoice["شماره حساب"] == account]
     if search_query:
         user_invoice = user_invoice[user_invoice.astype(str).apply(lambda row: row.str.contains(search_query, case=False, na=False)).any(axis=1)]
 
-    important_cols = ['تاریخ', 'برداشت', 'واریز', 'ماهیانه', 'قسط وام', 'وام', 'وام فوری', 'برگشت وام فوری', 'توضیحات']
+    cols = ['تاریخ', 'برداشت', 'واریز', 'ماهیانه', 'قسط وام', 'وام', 'وام فوری', 'برگشت وام فوری', 'توضیحات']
 
     content = f'''
-    <h2 style="color:green;">تراکنش‌های {name}</h2>
-    <div style="margin-bottom: 15px;">
-        <a href="{url_for('user_panel')}">⬅️ بازگشت به داشبورد</a>
-    </div>
-    <form method="get" style="margin-bottom:10px;">
-        <input type="text" name="search" placeholder="جستجو..." value="{search_query}">
-        <input type="submit" value="جستجو">
-    </form>
+    <div class="card">
+        <h2>تراکنش‌های {name}</h2>
+        <form method="get">
+            <input type="text" name="search" placeholder="جستجو..." value="{search_query}">
+            <input type="submit" value="جستجو">
+        </form>
     '''
 
     if not user_invoice.empty:
-        content += "<table border='1' style='direction: rtl; text-align: center;'><tr>"
-        for col in important_cols:
-            content += f"<th>{col}</th>"
-        content += "</tr>"
-
+        content += "<table><tr>" + "".join([f"<th>{col}</th>" for col in cols]) + "</tr>"
         for _, row in user_invoice.iterrows():
-            content += "<tr>"
-            for col in important_cols:
-                val = row.get(col)
-                value = format_money(val) if col not in ['توضیحات', 'تاریخ'] and pd.notna(val) else (to_persian_numbers(val) if pd.notna(val) else "-")
-                content += f"<td data-label='{col}'>{value}</td>"
-            content += "</tr>"
+            content += "<tr>" + "".join([
+                f"<td data-label='{col}'>{format_money(row[col]) if col not in ['توضیحات', 'تاریخ'] else to_persian_numbers(row[col])}</td>" if pd.notna(row[col]) else "<td>-</td>"
+                for col in cols
+            ]) + "</tr>"
         content += "</table>"
     else:
         content += "<p>تراکنشی یافت نشد.</p>"
+    content += "</div>"
 
-    return render_template_string(BASE_HTML, content=content, to_persian_numbers=to_persian_numbers)
+    return render_template_string(BASE_HTML, content=content)
+
 @app.route("/admin")
 def admin_panel():
     if not session.get("logged_in") or not session.get("is_admin"):
         return redirect(url_for("index"))
 
     df_report, _ = read_excel_data()
-    if isinstance(df_report, str):
-        return render_template_string(BASE_HTML, content=f"<b>خطا:</b> {df_report}")
+    financial_cols = [c for c in df_report.columns[6:] if pd.notna(c) and not str(c).startswith("Unnamed")]
 
     content = '''
-    <h2>پنل مدیر</h2>
-    <form action="/upload" method="post" enctype="multipart/form-data" style="margin-bottom: 20px;">
-        <label>بارگذاری فایل Excel:</label>
-        <input type="file" name="file">
-        <input type="submit" value="بارگذاری">
-    </form>
-    <table border='1' style='text-align:center; direction: rtl;'>
-        <tr>
-            <th>نام</th><th>شماره حساب</th>'''
-
-    # افزودن همان ستون‌های اطلاعاتی که کاربر عادی می‌بیند
-    financial_columns = df_report.columns[6:]
-    for col in financial_columns:
-        if pd.notna(col) and str(col).strip() != "" and not str(col).startswith("Unnamed") and "nan" not in str(col) and str(col) not in ["مقایسه", "شماره حساب2", "299465200"]:
-            content += f"<th>{col}</th>"
-    content += "</tr>"
+    <div class="card">
+        <h2>پنل مدیریت</h2>
+        <form action="/upload" method="post" enctype="multipart/form-data">
+            <label>بارگذاری فایل Excel جدید:</label>
+            <input type="file" name="file">
+            <input type="submit" value="بارگذاری">
+        </form>
+        <br>
+        <table>
+            <tr><th>نام</th><th>شماره حساب</th>''' + "".join([f"<th>{col}</th>" for col in financial_cols]) + "</tr>"
 
     for _, row in df_report.iterrows():
-        name = row.get("نام و نام خانوادگي", "")
-        acc = row.get("شماره حساب", "")
-        content += f"<tr><td>{name}</td><td>{acc}</td>"
-
-        for col in financial_columns:
-            if pd.notna(col) and str(col).strip() != "" and not str(col).startswith("Unnamed") and "nan" not in str(col) and str(col) not in ["مقایسه", "شماره حساب2", "299465200"]:
-                val = row.get(col)
-                content += f"<td>{format_money(val)}</td>"
+        content += f"<tr><td>{row['نام و نام خانوادگي']}</td><td>{to_persian_numbers(row['شماره حساب'])}</td>"
+        for col in financial_cols:
+            content += f"<td>{format_money(row[col])}</td>"
         content += "</tr>"
 
-    content += "</table>"
-
+    content += "</table></div>"
     return render_template_string(BASE_HTML, content=content)
-@app.route("/logout")
-def logout():
-    session.clear()
-    return redirect(url_for("index"))
-@app.route('/upload', methods=['POST'])
+
+@app.route("/upload", methods=["POST"])
 def upload_excel():
     if not session.get("logged_in") or not session.get("is_admin"):
         return redirect(url_for("index"))
 
-    file = request.files.get('file')
-    if not file or file.filename == '':
-        return redirect(url_for('admin_panel'))
-
-    if allowed_file(file.filename):
-        filename = "base_hor.xlsm"  # نام فایل هدف را ثابت نگه می‌داریم
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    file = request.files.get("file")
+    if file and allowed_file(file.filename):
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], "base_hor.xlsm")
         file.save(filepath)
-        message = "<p style='color:green;'>فایل با موفقیت بارگذاری شد.</p>"
-    else:
-        message = "<p style='color:red;'>فقط فایل‌های Excel با فرمت .xls یا .xlsm مجاز هستند.</p>"
+    return redirect(url_for("admin_panel"))
 
-    session['upload_message'] = message
-    return redirect(url_for('admin_panel'))
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("index"))
+
 if __name__ == "__main__":
     app.run(debug=True)
+
