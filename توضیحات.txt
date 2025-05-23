@@ -5,6 +5,6 @@ git push origin main
 
 
 git add .
-git commit -m "1آپدیت کامل پروژه"
+git commit -m "2آپدیت کامل پروژه"
 git push  
  همه پروژه را به گیت انتقال میده
