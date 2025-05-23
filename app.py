@@ -6,7 +6,7 @@ from werkzeug.utils import secure_filename
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
 
-EXCEL_FILE = r"E:\bank data11111111111111\sandogh\base_hor.xlsm"
+EXCEL_FILE = os.path.join(os.path.dirname(__file__), "base_hor.xlsm")
 UPLOAD_FOLDER = os.path.dirname(EXCEL_FILE)
 ALLOWED_EXTENSIONS = {'xls', 'xlsm'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -18,6 +18,7 @@ BASE_HTML = '''
     <meta charset="UTF-8">
     <title>صندوق قرض‌الحسنه</title>
     <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/font-face.css" rel="stylesheet">
+    <link href="https://cdn.fontcdn.ir/Font/Persian/Titr/Titr.css" rel="stylesheet">
     <style>
         body {
             direction: rtl;
@@ -153,16 +154,25 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 LOGIN_FORM = '''
-<h2>ورود به سامانه</h2>
-<form method=post>
-    <label>نام یا شماره حساب:</label>
-    <input type=text name=username>
-    <label>رمز:</label>
-    <input type=password name=password><br>
-    <input type=submit value="ورود">
-</form>
-<hr>
-{{ result|safe }}
+<div style="text-align: center;">
+    <blockquote style="font-size: 18px; font-style: italic; margin-bottom: 15px; color: #ffc107;">
+        هر کسی به برادر مسلمانش قرض دهد، در مقابل هر درهمی که به او قرض داده به وزن کوه احد از کوه‌های رضوی‌ و طور سینا، برای او حسنه است. <br> پیامبر(ص)
+    </blockquote>
+    <h2 style="font-family: 'titr', 'Vazir', Tahoma, sans-serif; font-size: 26px; color: #fff; margin-bottom: 30px;">
+        صندوق قرضه الحسنه منتظران شهادت حر
+    </h2>
+    <div style="max-width: 400px; margin: 0 auto; background-color: rgba(255,255,255,0.1); padding: 20px; border-radius: 10px;">
+        <form method=post>
+            <label>نام یا شماره حساب:</label>
+            <input type=text name=username>
+            <label>رمز:</label>
+            <input type=password name=password><br>
+            <input type=submit value="ورود">
+        </form>
+        <hr>
+        {{ result|safe }}
+    </div>
+</div>
 '''
 
 # 📍 روت‌ها
