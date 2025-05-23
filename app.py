@@ -289,6 +289,10 @@ def admin_panel():
     if isinstance(df_report, str):
         return render_template_string(BASE_HTML, content=f"<b>خطا:</b> {df_report}")
 
+    search_query = request.args.get("search", "").strip()
+    if search_query:
+        df_report = df_report[df_report.astype(str).apply(lambda row: row.str.contains(search_query, case=False, na=False)).any(axis=1)]
+
     content = '''
     <h2>پنل مدیر</h2>
     <form action="/upload" method="post" enctype="multipart/form-data">
@@ -296,8 +300,13 @@ def admin_panel():
         <input type="file" name="file">
         <input type="submit" value="بارگذاری">
     </form>
-    <table><tr><th>نام</th><th>شماره حساب</th>'''
+    <form method="get" style="margin-top: 20px;">
+        <input type="text" name="search" placeholder="جستجو در اطلاعات..." value="{}">
+        <input type="submit" value="جستجو">
+    </form>
+    '''.format(search_query)
 
+    content += "<table><tr><th>نام</th><th>شماره حساب</th>"
     financial_columns = df_report.columns[6:]
     for col in financial_columns:
         if pd.notna(col) and str(col).strip() != "" and not str(col).startswith("Unnamed") and "nan" not in str(col):
